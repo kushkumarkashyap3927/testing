@@ -6,6 +6,7 @@
   cursor: pointer;
   transition: box-shadow 0.12s ease, transform 0.08s ease;
 }
+.project-card { display:flex; flex-direction:column; width:100%; }
 .project-card:hover { box-shadow: 0 6px 18px rgba(0,0,0,0.06); transform: translateY(-2px); }
 .pc-header { display:flex; align-items:center; justify-content:space-between; gap:8px; }
 .pc-title { margin:0; font-size:1rem; }

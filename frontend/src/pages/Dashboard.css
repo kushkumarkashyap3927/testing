@@ -6,14 +6,14 @@
   box-sizing: border-box;
 }
 .left-panel {
-  width: 20%;
+  flex: 0 0 220px;
   min-width: 180px;
 }
 .right-panel {
-  width: 70%;
+  flex: 1 1 0;
 }
 
 @media (max-width: 800px) {
   .dashboard-container { flex-direction: column; }
-  .left-panel, .right-panel { width: 100%; }
+  .left-panel, .right-panel { width: 100%; flex: none; }
 }

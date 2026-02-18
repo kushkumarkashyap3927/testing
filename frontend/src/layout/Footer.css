@@ -1,11 +1,17 @@
 .footer {
   text-align: center;
-  padding: 1rem 0;
+  padding: 0 1rem;
   background: #222;
   color: #fff;
   position: fixed;
   left: 0;
   bottom: 0;
   width: 100%;
+  height: var(--footer-height);
+  line-height: var(--footer-height);
   font-size: 1rem;
+  z-index: 999;
 }
+
+/* ensure footer content doesn't overlap interactive elements on small screens */
+.footer a { color: #fff; text-decoration: none; }

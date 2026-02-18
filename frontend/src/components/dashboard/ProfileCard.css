@@ -4,6 +4,11 @@
   border-radius: 8px;
   background: #fff;
   box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0; /* allow flex children to shrink without overflowing */
 }
 .pc-name {
   margin: 0 0 8px;
@@ -20,3 +25,14 @@
 }
 .pc-role { margin: 8px 0; color: #333; }
 .pc-meta { margin-top: 12px; color: #777; }
+
+/* prevent long words/strings (emails, tokens) from breaking layout */
+.pc-name, .pc-email, .pc-desc, .pc-role, .pc-meta {
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 480px) {
+  .profile-card { padding: 12px; }
+  .pc-name { font-size: 1rem; }
+}
