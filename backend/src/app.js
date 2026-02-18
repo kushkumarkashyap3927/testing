@@ -2,12 +2,18 @@ import express from "express";
 import cors from "cors";
 import apiError from "./utils/apiError.js";
 import userRouter from "./routes/user.route.js";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 
 const app = express();
 
 
 
+
+
+console.log("[CORS DEBUG] CORS_ORIGIN:", process.env.CORS_ORIGIN);
 app.use(
     cors({
         origin: process.env.CORS_ORIGIN,

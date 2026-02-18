@@ -1,13 +1,23 @@
-
 import React, { useState } from "react";
-import axios from "axios";
+import { Link, useNavigate } from "react-router-dom";
+import { useUser } from "../components/providers/UserProvider";
 
-function Login() {
+const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const { loginUser } = useUser();
+  const navigate = useNavigate();
+
+  const handleChange = (e) => {
+      if (e.target.name === "email") {
+        setEmail(e.target.value);
+      } else if (e.target.name === "password") {
+        setPassword(e.target.value);
+      }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -15,15 +25,25 @@ function Login() {
     setError("");
     setSuccess("");
     try {
-      // Change the URL to your backend login endpoint
-      const res = await axios.post("http://localhost:8000/api/auth/login", {
-        email,
-        password,
+      const res = await fetch("http://localhost:8000/api/v1/user/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ email, password })
       });
-      setSuccess("Login successful!");
-      // You can handle token or redirect here
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setSuccess("Login successful!");
+        if (data.data && data.data.user) {
+          loginUser(data.data.user);
+          navigate("/dashboard");
+        }
+      } else {
+        setError(data.message || "Login failed");
+      }
     } catch (err) {
-      setError(err.response?.data?.message || "Login failed");
+      setError("Network error");
     } finally {
       setLoading(false);
     }
@@ -33,32 +53,34 @@ function Login() {
     <div style={{ maxWidth: 400, margin: "2rem auto" }}>
       <h2>Login</h2>
       <form onSubmit={handleSubmit}>
-        <div style={{ marginBottom: 12 }}>
-          <label>Email:</label>
-          <input
-            type="email"
+        <input
+          type="email"
+          name="email"
+          placeholder="Email"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            style={{ width: "100%", padding: 8, marginTop: 4 }}
-          />
-        </div>
-        <div style={{ marginBottom: 12 }}>
-          <label>Password:</label>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            style={{ width: "100%", padding: 8, marginTop: 4 }}
-          />
-        </div>
+          onChange={handleChange}
+          required
+          style={{ width: "100%", marginBottom: 12, padding: 8 }}
+        />
+        <input
+          type="password"
+          name="password"
+          placeholder="Password"
+          value={password}
+          onChange={handleChange}
+          required
+          style={{ width: "100%", marginBottom: 12, padding: 8 }}
+        />
         <button type="submit" disabled={loading} style={{ width: "100%", padding: 10 }}>
           {loading ? "Logging in..." : "Login"}
         </button>
-        {error && <p style={{ color: "red" }}>{error}</p>}
-        {success && <p style={{ color: "green" }}>{success}</p>}
+        {error && <div style={{ color: "red", marginTop: 10 }}>{error}</div>}
+        {success && <div style={{ color: "green", marginTop: 10 }}>{success}</div>}
       </form>
+
+      <div style={{ marginTop: 16, textAlign: "center" }}>
+        Don't have an account? <Link to="/signup">Signup</Link>
+      </div>
     </div>
   );
 }

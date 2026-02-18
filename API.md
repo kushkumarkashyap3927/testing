@@ -52,10 +52,6 @@ http://localhost:8000/api/v1/user/login
 request : 
 
 {    "email" : "kush@gmail.com",
-    "fullName" : "kush kumar",
-    "desc" : "he is a ceo currently",
-    "role" : "Ceo",
-    "password" : "1234"
 }
 
 
