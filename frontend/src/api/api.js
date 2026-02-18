@@ -3,7 +3,7 @@ import { toast } from "sonner";
 
 // Initialize Axios instance
 const api = axios.create({
-  baseURL: VITE_BACKEND_URL || 'http://localhost:5000/api',
+  baseURL: VITE_BACKEND_URL ,
   headers: {
     "Content-Type": "application/json"
   },
