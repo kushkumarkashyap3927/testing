@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import "./ProjectSection.css";
 import ProjectModal from "./ProjectModal";
 import { useUser } from "../providers/UserProvider";
@@ -11,15 +11,19 @@ export default function ProjectSection() {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [refreshKey, setRefreshKey] = useState(0);
 
-  const fetchProjects = async () => {
+  const userId = useMemo(() => {
+    if (!user) return null;
+    return user.id || user._id || null;
+  }, [user?.id, user?._id]);
+
+  const fetchProjects = useCallback(async () => {
     setError("");
-    if (!user) return;
-    const id = user.id || user._id;
-    if (!id) return;
+    if (!userId) return;
     setLoading(true);
     try {
-      const res = await getProjects(id);
+      const res = await getProjects(userId);
       // our api wrapper returns response.data from axios, so structure is likely { success, data: { projects } }
       const projectsList = res?.data?.projects || res?.projects || res?.data || res || [];
       // normalize to array
@@ -33,13 +37,13 @@ export default function ProjectSection() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [userId]);
 
   useEffect(() => {
-    if (!user) return;
+    if (!userId) return;
+    // fetch once on mount or when userId changes, or when refreshKey increments
     fetchProjects();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user]);
+  }, [userId, fetchProjects, refreshKey]);
 
   return (
     <div className="project-section">
@@ -58,7 +62,14 @@ export default function ProjectSection() {
         </div>
       </div>
 
-      <ProjectModal open={open} onClose={() => { setOpen(false); fetchProjects(); }} />
+      <ProjectModal
+        open={open}
+        onClose={() => {
+          setOpen(false);
+          // increment refreshKey to trigger a refetch only when modal closes (assumed new project creation)
+          setRefreshKey((k) => k + 1);
+        }}
+      />
     </div>
   );
 }

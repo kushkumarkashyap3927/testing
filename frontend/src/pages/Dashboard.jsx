@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { useUser } from "../components/providers/UserProvider";
 import { getUserProfile } from "../api/api";
 import ProfileCard from "../components/dashboard/ProfileCard";
@@ -8,30 +8,38 @@ import "./Dashboard.css";
 
 function Dashboard() {
   const { user } = useUser();
+  const [mounted, setMounted] = useState(false);
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    if (!user?.email) return;
-    const fetchProfile = async () => {
-      setLoading(true);
-      setError("");
-      try {
-        const data = await getUserProfile(user.email);
-        if (data.success && data.data && data.data.user) {
-          setProfile(data.data.user);
-        } else {
-          setError(data.message || "Failed to fetch profile");
-        }
-      } catch (err) {
-        setError("Network error");
-      } finally {
-        setLoading(false);
+  const userEmail = useMemo(() => user?.email || null, [user?.email]);
+
+  const fetchProfile = useCallback(async () => {
+    if (!userEmail) return;
+    setLoading(true);
+    setError("");
+    try {
+      const data = await getUserProfile(userEmail);
+      if (data.success && data.data && data.data.user) {
+        setProfile(data.data.user);
+      } else {
+        setError(data.message || "Failed to fetch profile");
       }
-    };
+    } catch (err) {
+      setError("Network error");
+    } finally {
+      setLoading(false);
+    }
+  }, [userEmail]);
+
+  useEffect(() => {
+    setMounted(true);
     fetchProfile();
-  }, [user]);
+  }, [fetchProfile]);
+
+
+  if(!mounted) return null; // Prevent rendering until mounted to avoid hydration issues
 
   return (
     <div>
