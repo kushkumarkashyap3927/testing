@@ -3,12 +3,15 @@ import React, { createContext, useState, useContext, useEffect } from "react";
 const UserContext = createContext();
 
 export function UserProvider({ children }) {
+
+  const [mounted, setMounted] = useState(false);
   const [user, setUser] = useState(() => {
     const stored = localStorage.getItem("user");
     return stored ? JSON.parse(stored) : null;
   });
 
   useEffect(() => {
+    setMounted(true);
     // Sync user state with localStorage
     if (user) {
       localStorage.setItem("user", JSON.stringify(user));
@@ -27,6 +30,8 @@ export function UserProvider({ children }) {
     localStorage.removeItem("user");
     if (typeof cb === "function") cb();
   };
+
+  if(!mounted) return null; // Prevent rendering until mounted to avoid hydration issues  
 
   return (
     <UserContext.Provider value={{ user, loginUser, logoutUser }}>

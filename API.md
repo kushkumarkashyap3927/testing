@@ -76,7 +76,7 @@ response :
 
 
 
-get profile : get method
+get profile : post method
 
 http://localhost:8000/api/v1/user/profile
 

@@ -45,6 +45,8 @@ app.get("/", (req, res) => {
 
 app.use("/api/v1/user", userRouter);
 
+app.use("/api/v1/project", projectRouter);
+
 // 404 handler
 app.use((req, res, next) => {
     res.status(404).json({
@@ -75,12 +77,7 @@ app.use((err, req, res, next) => {
     });
 });
 
-// Routes will be like:
-// POST /api/v1/user/signup
-// POST /api/v1/user/login
-// GET /api/v1/user/profile
-// POST /api/v1/user/logout
-// DELETE /api/v1/user/delete
+
 
 
 

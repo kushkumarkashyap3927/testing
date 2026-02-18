@@ -1,9 +1,6 @@
 import axios from "axios";
 import { toast } from "sonner";
 
-// Initialize Axios instance
-
-console.log("Backend URL from env:", import.meta.env.VITE_BACKEND_URL); // Debug log to verify env variable
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_BACKEND_URL,
@@ -79,6 +76,73 @@ export const getAllUsers = async () => {
     return response.data;
   } catch (error) {
     const errorMsg = error.response?.data?.message || "Failed to load users";
+    toast.error(errorMsg);
+    throw error;
+  }
+};
+
+/**
+ * PROJECT API METHODS
+ */
+
+// Create project
+export const createProject = async (projectData) => {
+  try {
+    const response = await api.post("/project/create", projectData);
+    toast.success(response.data.message || "Project created successfully");
+    return response.data;
+  } catch (error) {
+    const errorMsg = error.response?.data?.message || "Create project failed";
+    toast.error(errorMsg);
+    throw error;
+  }
+};
+
+// Get projects for a user (sends id as query param)
+export const getProjects = async (id) => {
+  try {
+    const response = await api.get("/project/getProjects", { params: { id } });
+    return response.data;
+  } catch (error) {
+    const errorMsg = error.response?.data?.message || "Failed to load projects";
+    toast.error(errorMsg);
+    throw error;
+  }
+};
+
+// Get single project by id
+export const getProjectById = async (projectId) => {
+  try {
+    const response = await api.get(`/project/getProject/${projectId}`);
+    return response.data;
+  } catch (error) {
+    const errorMsg = error.response?.data?.message || "Failed to load project";
+    toast.error(errorMsg);
+    throw error;
+  }
+};
+
+// Delete a project
+export const deleteProject = async (projectId) => {
+  try {
+    const response = await api.delete(`/project/deleteProject/${projectId}`);
+    toast.success(response.data.message || "Project deleted");
+    return response.data;
+  } catch (error) {
+    const errorMsg = error.response?.data?.message || "Delete project failed";
+    toast.error(errorMsg);
+    throw error;
+  }
+};
+
+// Update a project
+export const updateProject = async (projectId, data) => {
+  try {
+    const response = await api.put(`/project/updateProject/${projectId}`, data);
+    toast.success(response.data.message || "Project updated");
+    return response.data;
+  } catch (error) {
+    const errorMsg = error.response?.data?.message || "Update project failed";
     toast.error(errorMsg);
     throw error;
   }
