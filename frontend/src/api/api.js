@@ -3,8 +3,10 @@ import { toast } from "sonner";
 
 // Initialize Axios instance
 
+console.log("Backend URL from env:", import.meta.env.VITE_BACKEND_URL); // Debug log to verify env variable
+
 const api = axios.create({
-  baseURL: import.meta.env.BACKEND_URL,
+  baseURL: import.meta.env.VITE_BACKEND_URL,
   headers: {
     "Content-Type": "application/json"
   },
