@@ -1,0 +1,25 @@
+@import "../styles/theme.css";
+
+.nav{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 18px;
+  background: transparent;
+  border-bottom: 1px solid var(--border-muted);
+}
+.brand{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  text-decoration:none;
+  color:var(--text);
+  font-weight:700;
+}
+.nav-actions{ display:flex; gap:12px; align-items:center }
+.link{ text-decoration:none; color:var(--accent-muted) }
+.link.muted{ color:var(--muted) }
+.btn{ padding:6px 10px; border-radius:6px; text-decoration:none; display:inline-flex; align-items:center; gap:8px; border:none; cursor:pointer }
+.btn.primary{ background:var(--accent); color:white }
+.btn.ghost{ background:transparent; border:1px solid var(--border-muted); color:var(--muted) }
+.btn:focus{ outline:2px solid rgba(124,58,237,0.18) }
