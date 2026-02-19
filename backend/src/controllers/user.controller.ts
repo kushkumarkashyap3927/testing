@@ -4,12 +4,14 @@ const prisma = new PrismaClient();
 
 export const createUser = async (req: any, res: any) => {
   try {
-    const { name, email, password } = req.body;
+    const { fullName, email, password ,desc ,role } = req.body;
     const user = await prisma.user.create({
       data: {
-        name,
+        fullName,
         email,
         password,
+        desc,
+        role
       },
     });
     res.status(201).json(user);
