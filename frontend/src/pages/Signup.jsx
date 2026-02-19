@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { signupUser } from "../api/api";
+import "./Signup.css";
 
 const Signup = () => {
   const [form, setForm] = useState({
@@ -43,60 +44,60 @@ const Signup = () => {
   };
 
   return (
-    <div style={{ maxWidth: 400, margin: "40px auto", padding: 24, border: "1px solid #eee", borderRadius: 8 }}>
-      <h2>Signup</h2>
-      <form onSubmit={handleSubmit}>
+    <div className="auth-container">
+      <h2 className="auth-title">Signup</h2>
+      <form className="auth-form" onSubmit={handleSubmit}>
         <input
+          className="auth-input"
           type="email"
           name="email"
           placeholder="Email"
           value={form.email}
           onChange={handleChange}
           required
-          style={{ width: "100%", marginBottom: 12, padding: 8 }}
         />
         <input
+          className="auth-input"
           type="text"
           name="fullName"
           placeholder="Full Name"
           value={form.fullName}
           onChange={handleChange}
           required
-          style={{ width: "100%", marginBottom: 12, padding: 8 }}
         />
         <input
+          className="auth-input"
           type="text"
           name="desc"
           placeholder="Description"
           value={form.desc}
           onChange={handleChange}
-          style={{ width: "100%", marginBottom: 12, padding: 8 }}
         />
         <input
+          className="auth-input"
           type="text"
           name="role"
           placeholder="Role"
           value={form.role}
           onChange={handleChange}
-          style={{ width: "100%", marginBottom: 12, padding: 8 }}
         />
         <input
+          className="auth-input"
           type="password"
           name="password"
           placeholder="Password"
           value={form.password}
           onChange={handleChange}
           required
-          style={{ width: "100%", marginBottom: 12, padding: 8 }}
         />
-        <button type="submit" disabled={loading} style={{ width: "100%", padding: 10 }}>
+        <button className="auth-btn" type="submit" disabled={loading}>
           {loading ? "Signing up..." : "Signup"}
         </button>
-        {error && <div style={{ color: "red", marginTop: 10 }}>{error}</div>}
-        {success && <div style={{ color: "green", marginTop: 10 }}>{success}</div>}
+        {error && <div className="message error">{error}</div>}
+        {success && <div className="message success">{success}</div>}
       </form>
 
-      <div style={{ marginTop: 16, textAlign: "center" }}>
+      <div className="auth-foot">
         Already have an account? <Link to="/login">Login</Link>
       </div>
     </div>

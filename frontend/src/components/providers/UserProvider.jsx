@@ -1,5 +1,5 @@
 import React, { createContext, useState, useContext, useEffect } from "react";
-import Loader from "../../layout/Loader";
+
 
 const UserContext = createContext();
 
@@ -32,7 +32,7 @@ export function UserProvider({ children }) {
     if (typeof cb === "function") cb();
   };
 
-  if(!mounted) return <Loader />;
+  if(!mounted) return null;
 
   return (
     <UserContext.Provider value={{ user, loginUser, logoutUser }}>

@@ -1,32 +1,5 @@
-.dashboard-page {
-  padding: 12px;
-}
-
-.dashboard-container {
-  display: flex;
-  gap: 24px;
-  align-items: flex-start;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.left-panel {
-  flex: 0 0 30%;
-  min-width: 220px;
-  max-width: 400px;
-}
-
-.right-panel {
-  flex: 1 1 0;
-}
-
-/* Small screens: stack panels */
-@media (max-width: 900px) {
-  .dashboard-container { flex-direction: column; }
-  .left-panel, .right-panel { width: 100%; flex: none; }
-}
-
-.dashboard-page h2 {
-  margin: 8px 12px;
-  font-size: 1.25rem;
-}
+.dashboard-root{padding:18px 0}
+.dash-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-top:12px}
+.dash-card{background:var(--card);padding:16px;border-radius:12px;border:1px solid rgba(15,23,42,0.04);box-shadow:0 8px 20px rgba(2,6,23,0.04)}
+.dash-title{font-size:16px;margin:0 0 8px}
+.dash-small{color:var(--muted);font-size:13px}

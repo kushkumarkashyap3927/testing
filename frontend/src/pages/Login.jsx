@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useUser } from "../components/providers/UserProvider";
 import { loginUser as loginUserApi } from "../api/api";
+import "./Login.css";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -44,35 +45,35 @@ const Login = () => {
   };
 
   return (
-    <div style={{ maxWidth: 400, margin: "2rem auto" }}>
-      <h2>Login</h2>
-      <form onSubmit={handleSubmit}>
+    <div className="auth-container">
+      <h2 className="auth-title">Login</h2>
+      <form className="auth-form" onSubmit={handleSubmit}>
         <input
+          className="auth-input"
           type="email"
           name="email"
           placeholder="Email"
-            value={email}
+          value={email}
           onChange={handleChange}
           required
-          style={{ width: "100%", marginBottom: 12, padding: 8 }}
         />
         <input
+          className="auth-input"
           type="password"
           name="password"
           placeholder="Password"
           value={password}
           onChange={handleChange}
           required
-          style={{ width: "100%", marginBottom: 12, padding: 8 }}
         />
-        <button type="submit" disabled={loading} style={{ width: "100%", padding: 10 }}>
+        <button className="auth-btn" type="submit" disabled={loading}>
           {loading ? "Logging in..." : "Login"}
         </button>
-        {error && <div style={{ color: "red", marginTop: 10 }}>{error}</div>}
-        {success && <div style={{ color: "green", marginTop: 10 }}>{success}</div>}
+        {error && <div className="message error">{error}</div>}
+        {success && <div className="message success">{success}</div>}
       </form>
 
-      <div style={{ marginTop: 16, textAlign: "center" }}>
+      <div className="auth-foot">
         Don't have an account? <Link to="/signup">Signup</Link>
       </div>
     </div>

@@ -11,7 +11,7 @@ const Login = lazy(() => import("./pages/Login"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const Project = lazy(() => import("./pages/Project"));
 const Signup = lazy(() => import("./pages/Signup"));
-const Layout = lazy(() => import("./layout/Layout"));
+
 import { Toaster } from "sonner";
 import { useUser } from "./components/providers/UserProvider";
 import { Navigate } from "react-router-dom";
@@ -24,23 +24,35 @@ const ProtectedRoute = ({ children }) => {
   return children;
 };
 
+const PublicRoute = ({ children }) => {
+  const { user } = useUser();
+  if (user) {
+    return <Navigate to="/dashboard" replace />;
+  }
+  return children;
+};
+
+import Layout from "./components/Layout";
+
 const router = createBrowserRouter([
   {
     path: "/",
-    element: (
-      <Suspense fallback={<div />}> 
-        <Layout />
-      </Suspense>
-    ),
+    element: <Layout />,
     children: [
       { index: true, element: (
-        <Suspense fallback={<div />}> <Home /> </Suspense>
+        <PublicRoute>
+          <Suspense fallback={<div />}> <Home /> </Suspense>
+        </PublicRoute>
       ) },
       { path: "login", element: (
-        <Suspense fallback={<div />}> <Login /> </Suspense>
+        <PublicRoute>
+          <Suspense fallback={<div />}> <Login /> </Suspense>
+        </PublicRoute>
       ) },
       { path: "signup", element: (
-        <Suspense fallback={<div />}> <Signup /> </Suspense>
+        <PublicRoute>
+          <Suspense fallback={<div />}> <Signup /> </Suspense>
+        </PublicRoute>
       ) },
       { path: "dashboard", element: (
         <ProtectedRoute>
@@ -48,7 +60,9 @@ const router = createBrowserRouter([
         </ProtectedRoute>
       ) },
       { path: "project/:id", element: (
-        <Suspense fallback={<div />}> <Project /> </Suspense>
+        <ProtectedRoute>
+          <Suspense fallback={<div />}> <Project /> </Suspense>
+        </ProtectedRoute>
       ) },
     ]
   }
