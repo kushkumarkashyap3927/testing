@@ -3,9 +3,9 @@ import { createUser } from "../controllers/user.controller";
 
 
 
-const router = Router();
+const userRouter = Router();
 
 // Create a new user
-router.post("/users", createUser);
+userRouter.post("/users", createUser);
 
-export default router;
+export default userRouter;
