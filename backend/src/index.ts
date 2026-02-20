@@ -23,7 +23,7 @@ app.use(
 app.use(express.json());
 
 app.use("/api/v1", userRouter);
-app.use("/api/v1/projects", projectRouter);
+app.use("/api/v1", projectRouter);
 
 app.get("/", (req, res) => {
   Api.success(res, null, "Welcome to the API");

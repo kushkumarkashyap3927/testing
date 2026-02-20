@@ -9,6 +9,7 @@ import Project from './pages/Project.jsx';
 import { AuthProvider } from './components/providers/AuthProvider.jsx';
 import { PublicRoute, ProtectedRoute } from './components/providers/AuthRoutes.jsx';
 import { Toaster } from 'sonner';
+import './main.css';
 
 const router = createBrowserRouter([
   { path: '/', element: <PublicRoute><App /></PublicRoute> },
