@@ -4,7 +4,8 @@ import {
      getProjectById,updateProject 
      ,deleteProject,
      uploadProjectFiles,
-     mapStakeholders
+     mapStakeholders,
+     increamentProjectStatus
      } from "../controllers/project.controller";
 import upload from "../utils/multer";
 
@@ -34,6 +35,9 @@ projectRouter.post("/projects/:projectId/files",upload.array('files', 10), uploa
 // Map stakeholders
 projectRouter.post("/projects/:projectId/stakeholders", mapStakeholders);
 
+// Increament project status
+projectRouter.post("/projects/:projectId/increament-status", increamentProjectStatus);
+
 
 
 export default projectRouter;
@@ -49,6 +53,7 @@ put /projects/:projectId - update a project
 delete /projects/:projectId - delete a project
 post /projects/:projectId/files - upload project files
 post /projects/:projectId/stakeholders - map stakeholders
+post /projects/:projectId/increament-status - increament project status
  */
 
 

@@ -129,6 +129,7 @@ put /projects/:projectId - update a project
 delete /projects/:projectId - delete a project
 post /projects/:projectId/files - upload project files
 post /projects/:projectId/stakeholders - map stakeholders
+post /projects/:projectId/increament-status - increament project status
  */
 
 
@@ -226,9 +227,9 @@ export const uploadProjectFiles = async (projectId, files) => {
   }
 };
 
-export const mapStakeholders = async (projectId, stakeholdersData) => {
+export const mapStakeholders = async (projectId, relevantChats) => {
   try {
-    const response = await api.post(`/projects/${projectId}/stakeholders`, stakeholdersData);
+    const response = await api.post(`/projects/${projectId}/stakeholders`, { relevantChats });
     const msg = _extractMessage(response) || "Stakeholders mapped successfully";
     toast.success(msg);
     return response.data ?? response;
@@ -239,6 +240,21 @@ export const mapStakeholders = async (projectId, stakeholdersData) => {
     throw error;
   }
 };
+
+export const increamentProjectStatus = async (projectId) => {
+  try {
+    const response = await api.post(`/projects/${projectId}/increament-status`);
+    const msg = _extractMessage(response) || "Project status increamented successfully";
+    toast.success(msg);
+    return response.data ?? response;
+  } catch (error) {
+    console.error('Error increamenting project status:', error);
+    const errMsg = error?.response ? (error.response.data?.message ?? error.response.message) : "Failed to increament project status";
+    toast.error(errMsg);
+    throw error;
+  }
+};
+
 
 
 
