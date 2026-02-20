@@ -24,6 +24,8 @@ userRouter.delete("/users/:id", deleteUser);
 // Delete all users
 userRouter.delete("/users", deleteAllUsers);
 
+
+
 export default userRouter;
 
 /*

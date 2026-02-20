@@ -117,6 +117,7 @@ export const deleteAllUsers = async () => {
 
 
 
+
 /*
 
 all methods of project
@@ -126,8 +127,10 @@ get /projects/user/:userId - get projects by user ID
 get /projects/:projectId - get a project by ID
 put /projects/:projectId - update a project
 delete /projects/:projectId - delete a project
-
+post /projects/:projectId/files - upload project files
+post /projects/:projectId/stakeholders - map stakeholders
  */
+
 
 export const createProject = async (projectData) => {
   try {
@@ -198,6 +201,45 @@ export const deleteProject = async (projectId) => {
     throw error;
   }
 };
+
+export const uploadProjectFiles = async (projectId, files) => {
+  try {
+    const formData = new FormData();
+    files.forEach((file) => {
+      formData.append('files', file);
+    });
+
+    const response = await api.post(`/projects/${projectId}/files`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+
+    const msg = _extractMessage(response) || "Files uploaded successfully";
+    toast.success(msg);
+    return response.data ?? response;
+  } catch (error) {
+    console.error('Error uploading files:', error);
+    const errMsg = error?.response ? (error.response.data?.message ?? error.response.message) : "Failed to upload files";
+    toast.error(errMsg);
+    throw error;
+  }
+};
+
+export const mapStakeholders = async (projectId, stakeholdersData) => {
+  try {
+    const response = await api.post(`/projects/${projectId}/stakeholders`, stakeholdersData);
+    const msg = _extractMessage(response) || "Stakeholders mapped successfully";
+    toast.success(msg);
+    return response.data ?? response;
+  } catch (error) {
+    console.error('Error mapping stakeholders:', error);
+    const errMsg = error?.response ? (error.response.data?.message ?? error.response.message) : "Failed to map stakeholders";
+    toast.error(errMsg);
+    throw error;
+  }
+};
+
 
 
 

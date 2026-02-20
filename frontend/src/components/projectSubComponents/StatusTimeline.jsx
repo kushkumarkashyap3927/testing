@@ -1,69 +1,30 @@
 import React from 'react';
-import { Check, Loader2, Circle } from 'lucide-react';
+import { useProject } from '../../components/providers/ProjectProvider';
 
-export default function StatusTimeline({ status = 0, loading = false }) {
-  const steps = [
-    'Initialized',
-    'Stakeholders',
-    'Atomic Facts',
-    'Conflict Resolution',
-    'Truth Synthesis',
-    'Export Ready',
-  ];
-
-  if (loading) {
-    return (
-      <div className="flex items-center gap-2 px-4 py-2 bg-indigo-50 border border-indigo-100 rounded-lg text-indigo-700 font-medium animate-pulse">
-        <Loader2 className="w-4 h-4 animate-spin" />
-        <span className="text-sm">Engine processing data lineage...</span>
-      </div>
-    );
-  }
-
-  const currentStep = typeof status === 'number' ? status : 0;
+export default function StatusTimeline({ status: propStatus }) {
+  const { project } = useProject() || {};
+  const status = typeof propStatus === 'number' ? propStatus : (project?.status ?? 0);
+  const steps = [0, 1, 2, 3, 4, 5];
+  const labels = ['Init', 'Ingest', 'Synthesize', 'Review', 'Finalize', 'Done'];
 
   return (
-    <div className="w-full py-6">
-      <div className="relative flex justify-between items-start">
-        {/* Background Connector Line */}
-        <div className="absolute top-4 left-0 w-full h-0.5 bg-slate-200 -z-10" />
-        
-        {steps.map((label, i) => {
-          const isCompleted = i < currentStep;
-          const isCurrent = i === currentStep;
-          const isPending = i > currentStep;
-
+    <div className="w-full px-2">
+      <div className="flex items-center justify-between gap-2">
+        {steps.map((s, i) => {
+          const done = s <= status;
+          const isCurrent = s === status;
           return (
-            <div key={label} className="flex flex-col items-center flex-1 group">
-              {/* Node Icon Container */}
-              <div 
-                className={`relative z-10 w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-500 border-2 
-                ${isCompleted ? 'bg-indigo-600 border-indigo-600 shadow-lg shadow-indigo-200' : ''}
-                ${isCurrent ? 'bg-white border-indigo-600 ring-4 ring-indigo-50 scale-110' : ''}
-                ${isPending ? 'bg-white border-slate-200 text-slate-400' : ''}`}
-              >
-                {isCompleted ? (
-                  <Check className="w-5 h-5 text-white" strokeWidth={3} />
-                ) : isCurrent ? (
-                  <div className="w-2.5 h-2.5 bg-indigo-600 rounded-full animate-pulse" />
-                ) : (
-                  <span className="text-xs font-bold font-mono">{i + 1}</span>
-                )}
+            <div key={s} className="flex-1 text-center">
+              <div className={`mx-auto w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${done ? 'bg-indigo-600 text-white' : 'bg-white text-slate-500 border border-slate-200'}`}>
+                {s}
               </div>
-
-              {/* Label Text */}
-              <div className="mt-3 px-2 text-center">
-                <p className={`text-[11px] uppercase tracking-wider font-bold transition-colors duration-300
-                  ${isCurrent ? 'text-indigo-600' : isCompleted ? 'text-slate-700' : 'text-slate-400'}`}>
-                  {label}
-                </p>
-                {isCurrent && (
-                  <span className="text-[9px] text-indigo-400 font-medium animate-pulse">ACTIVE</span>
-                )}
-              </div>
+              <div className={`mt-1 text-[10px] ${isCurrent ? 'text-indigo-600 font-bold' : 'text-slate-400'}`}>{labels[i]}</div>
             </div>
           );
         })}
+      </div>
+      <div className="relative mt-2 h-1 bg-slate-100 rounded-full">
+        <div style={{ width: `${(Math.max(0, Math.min(status, 5)) / 5) * 100}%` }} className="absolute left-0 top-0 h-1 bg-indigo-500 rounded-full" />
       </div>
     </div>
   );

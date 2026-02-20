@@ -1,6 +1,12 @@
 import { Router } from "express";
-import { getProjectsByUserId,createProject, getProjectById,updateProject ,deleteProject } from "../controllers/project.controller";
-
+import {
+     getProjectsByUserId,createProject,
+     getProjectById,updateProject 
+     ,deleteProject,
+     uploadProjectFiles,
+     mapStakeholders
+     } from "../controllers/project.controller";
+import upload from "../utils/multer";
 
 
 
@@ -21,6 +27,15 @@ projectRouter.put("/projects/:projectId", updateProject);
 // Delete a project
 projectRouter.delete("/projects/:projectId", deleteProject);
 
+// Upload project files
+projectRouter.post("/projects/:projectId/files",upload.array('files', 10), uploadProjectFiles);
+
+
+// Map stakeholders
+projectRouter.post("/projects/:projectId/stakeholders", mapStakeholders);
+
+
+
 export default projectRouter;
 
 /*
@@ -32,5 +47,9 @@ get /projects/user/:userId - get projects by user ID
 get /projects/:projectId - get a project by ID
 put /projects/:projectId - update a project
 delete /projects/:projectId - delete a project
-
+post /projects/:projectId/files - upload project files
+post /projects/:projectId/stakeholders - map stakeholders
  */
+
+
+
