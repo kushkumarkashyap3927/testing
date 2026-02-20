@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { toast } from "sonner";
+import axios from "axios";
 import { user1, user2, user3, user4, user5 } from '../../test/testuse';
+import Loader from '../utils/Loader';
 
 const AuthContext = createContext({
   user: null,
@@ -14,7 +16,28 @@ export const AuthProvider = ({ children }) => {
   const [testUser, setTestUser] = useState(null);
   const [initialized, setInitialized] = useState(false);
 
+  const [isServerReady, setIsServerReady] = useState(false);
+  
+  const getServerStatus = async () => {
+    try {
+      const res = await axios.get('/');
+      if (res.status === 200) {
+        setIsServerReady(true);
+        console.log('[AuthProvider] Server is ready');
+      } else {
+        setIsServerReady(false);
+        console.warn('[AuthProvider] Server status check failed:', res.status);
+      }
+    } catch (err) {
+      setIsServerReady(false);
+      console.error('[AuthProvider] Server status check error:', err);
+    }
+  };
+
   useEffect(() => {
+
+    getServerStatus();
+
     try {
       const raw = localStorage.getItem("user");
       const parsed = raw ? JSON.parse(raw) : null;
@@ -78,8 +101,6 @@ export const AuthProvider = ({ children }) => {
   };
 
 
-  // no remote fixture fetch; using in-repo test fixtures
-
   useEffect(() => {
     const handleStorage = (e) => {
       if (e.key === "user") {
@@ -96,7 +117,7 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   useEffect(() => {
-    // log whenever testUser updates so it's easy to see in console whether fixtures are active
+   
     if (testUser) {
       console.log('[AuthProvider] testUser is set:', true, testUser);
     } else {
@@ -105,8 +126,8 @@ export const AuthProvider = ({ children }) => {
   }, [testUser]);
 
   return (
-    <AuthContext.Provider value={{ user, setUser, logout, testUser }}>
-      {initialized ? children : null}
+    <AuthContext.Provider value={{ user, setUser, logout, testUser, isServerReady }}>
+      {initialized && isServerReady ? children : <Loader message="Connecting to server..." />} 
     </AuthContext.Provider>
   );
 };
