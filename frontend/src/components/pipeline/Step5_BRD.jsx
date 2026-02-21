@@ -300,7 +300,7 @@ export default function Step5_BRD() {
             </div>
 
             {/* ── STATUS BADGE ── */}
-            <div className="flex items-center gap-4 p-4 bg-gradient-to-r from-emerald-50 to-indigo-50 border border-emerald-200 rounded-2xl flex-wrap">
+            <div className="flex items-center gap-4 p-4 bg-linear-to-r from-emerald-50 to-indigo-50 border border-emerald-200 rounded-2xl flex-wrap">
                 <div className="w-10 h-10 bg-white rounded-xl shadow-sm flex items-center justify-center shrink-0">
                     <FiAward className="w-5 h-5 text-emerald-500" />
                 </div>

@@ -92,7 +92,7 @@ function NavBar() {
           <Link to="/login" className="text-xs font-bold text-slate-500 hover:text-indigo-600 transition-colors px-3 py-1.5">
             Sign In
           </Link>
-          <Link to="/signup" className="flex items-center gap-1.5 btn-primary !py-2 !px-4 !rounded-xl">
+          <Link to="/signup" className="flex items-center gap-1.5 btn-primary py-2! px-4! rounded-xl!">
             Get Started <FiArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>
@@ -106,9 +106,9 @@ function HeroSection() {
     <section className="relative pt-28 pb-20 overflow-hidden">
       {/* Background orbs */}
       <div className="absolute inset-0 -z-10 pointer-events-none">
-        <div className="absolute top-0 left-[10%] w-[520px] h-[520px] bg-indigo-500/8 blur-[100px] rounded-full" />
-        <div className="absolute bottom-0 right-[5%] w-[400px] h-[400px] bg-rose-500/6 blur-[100px] rounded-full" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] bg-purple-500/5 blur-[80px] rounded-full" />
+        <div className="absolute top-0 left-[10%] w-130 h-130 bg-indigo-500/8 blur-[100px] rounded-full" />
+        <div className="absolute bottom-0 right-[5%] w-100 h-100 bg-rose-500/6 blur-[100px] rounded-full" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-75 h-75 bg-purple-500/5 blur-[80px] rounded-full" />
         {/* Blueprint grid */}
         <div className="absolute inset-0 bg-blueprint" />
       </div>
@@ -270,7 +270,7 @@ function CTASection() {
           {/* Bg grid */}
           <div className="absolute inset-0 bg-blueprint rounded-3xl" />
           <div className="relative z-10">
-            <div className="w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-8 shadow-xl shadow-indigo-200 float">
+            <div className="w-16 h-16 bg-linear-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-8 shadow-xl shadow-indigo-200 float">
               <FiShield className="w-8 h-8 text-white" />
             </div>
             <h2 className="text-4xl font-black text-slate-900 tracking-tight mb-5">
