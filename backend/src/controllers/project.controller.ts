@@ -383,12 +383,44 @@ if email email/to
 
 */
 
+export const increamentProjectStatus = async (req: any, res: any, next: any) => {
+  try {
+    const { projectId } = req.params;
+    if (!projectId) return next(new apiError(400, "ProjectId is required"));
+
+    const project = await prisma.project.findUnique({ where: { id: projectId } });
+    if (!project) return next(new apiError(404, "Project not found"));
+
+    const newStatus = (project.status || 0) + 1;
+
+    const updatedProject = await prisma.project.update({
+      where: { id: projectId },
+      data: { status: newStatus },
+    });
+
+    return Api.success(res, updatedProject, "Project status incremented successfully");
+  } catch (error: any) {
+    console.error(error);
+    return next(new apiError(500, "Failed to increment project status", [error.message]));
+  }
+};
 
 
-// const extractFactsDataSchema = z.object({
-//   facts: z.array(
-//     z.object({
-//       fact: z.string(),
-//     })
-//   )
-// });
+
+const extractFactsDataSchema = z.object({
+  facts: z.array(
+    z.object({
+      content: z.string().max(1000),
+      source: z.string().max(255),
+      tone: z.string().max(50),
+      when: z.string(), // ISO date string
+      sourceType: z.enum(["chat", "email", "document"]),
+      stackHolderId: z.string().optional(), 
+    })
+  )
+});
+
+
+
+
+

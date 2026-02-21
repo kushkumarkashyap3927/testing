@@ -35,7 +35,20 @@ export default function Step1({ project}) {
     };
 
     if (preview && result) {
-        return <PreviewStep1 result={result} onBack={() => setPreview(false)} />;
+        return (
+            <PreviewStep1
+                result={result}
+                projectId={project?.id}
+                onBack={() => setPreview(false)}
+                onIncrementSuccess={async () => {
+                    // Refresh project and update UI when backend advances status
+                    const updated = await fetchProject(project?.id);
+                    setResult(updated?.stakeholders ?? []);
+                    setStatus('complete');
+                    setPreview(false);
+                }}
+            />
+        );
     }
 
     return (
