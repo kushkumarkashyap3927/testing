@@ -241,19 +241,19 @@ export const mapStakeholders = async (projectId, relevantChats) => {
   }
 };
 
-export const increamentProjectStatus = async (projectId) => {
-  try {
-    const response = await api.post(`/projects/${projectId}/increament-status`);
-    const msg = _extractMessage(response) || "Project status increamented successfully";
-    toast.success(msg);
-    return response.data ?? response;
-  } catch (error) {
-    console.error('Error increamenting project status:', error);
-    const errMsg = error?.response ? (error.response.data?.message ?? error.response.message) : "Failed to increament project status";
-    toast.error(errMsg);
-    throw error;
-  }
-};
+// export const increamentProjectStatus = async (projectId) => {
+//   try {
+//     const response = await api.post(`/projects/${projectId}/increament-status`);
+//     const msg = _extractMessage(response) || "Project status increamented successfully";
+//     toast.success(msg);
+//     return response.data ?? response;
+//   } catch (error) {
+//     console.error('Error increamenting project status:', error);
+//     const errMsg = error?.response ? (error.response.data?.message ?? error.response.message) : "Failed to increament project status";
+//     toast.error(errMsg);
+//     throw error;
+//   }
+// };
 
 
 

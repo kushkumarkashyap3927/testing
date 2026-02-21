@@ -1,12 +1,14 @@
 import React, { useState, useContext } from 'react';
-import { increamentProjectStatus } from '../../../../apis/api';
+import { mapStakeholders } from '../../../../apis/api';
 import PreviewStep1 from '../preview/PreviewStep1';
 import { FiPlay, FiUsers, FiCpu, FiCheckCircle, FiLoader, FiEye, FiActivity } from 'react-icons/fi';
 import { useProject } from '../../../providers/ProjectProvider';
+import { useAuth } from '../../../providers/AuthProvider';
 
-export default function Step1({ project }) {
+export default function Step1({ project}) {
     const [preview, setPreview] = useState(false);
     const [loading, setLoading] = useState(false);
+    const { testUser } = useAuth();
     const [status, setStatus] = useState('idle'); // idle | analyzing | complete
     const [error, setError] = useState(null);
     const { fetchProject } = useProject();
@@ -16,10 +18,13 @@ export default function Step1({ project }) {
         setError(null);
         setLoading(true);
         setStatus('analyzing');
-        try {
-            await increamentProjectStatus(project?.id);
-            const updatedProject = await fetchProject(project?.id);
-            setResult(updatedProject?.stakeholders || []);
+            try {
+            // Use workspace-level chats if provided, otherwise fall back to project-level chats
+            const relevantChats = testUser;
+            const resp = await mapStakeholders(project?.id, relevantChats);
+            // API returns created stakeholders or updated project; try to read stakeholders
+            const stakeholders = resp?.stakeholders ?? resp?.data ?? (resp || []);
+            setResult(stakeholders);
             setStatus('complete');
         } catch (err) {
             setError(String(err));

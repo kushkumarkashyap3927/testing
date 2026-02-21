@@ -222,10 +222,11 @@ const extractionSchema = z.object({
     z.object({
       name: z.string(),
       role: z.string(),
+      influence: z.string(),
+      stance: z.string(),
     })
   )
   });
-
 
 export const mapStakeholders = async (req: any, res: any, next: any) => {
  
@@ -241,16 +242,29 @@ export const mapStakeholders = async (req: any, res: any, next: any) => {
     if (!project) return next(new apiError(404, "Project not found"));
     
     const prompt = `
-      You are an assistant that identifies stakeholders from project information and chat history.
-      Project Name: ${project.projectName}
-      Project Description: ${project.project_description}
-      Files: ${project.files.map((f: any) => `${f.name} (${f.url})`).join(", ")}
-      Relevant Chat History: ${Array.isArray(relevantChats) ? relevantChats.map((c: any) => `${c.sender}: ${c.message}`).join("\n") : relevantChats}
-      
-      Please extract the stakeholders involved in this project, including their names and roles.
-    `;
+  SYSTEM ROLE: Expert Business Systems Analyst & Entity Extractor.
+  
+  TASK: Extract a clean list of stakeholders from the provided Project Context and Communication Data. 
+  
+  STRICT GROUNDING RULES:
+  1. ONLY extract individuals or entities explicitly named in the "relevant" data streams.
+  2. DO NOT hallucinate or "fill in" missing data. If Influence or Stance is not clear, use "Neutral" or "Medium".
+  3. IGNORE all entries where "is_relevant" is false (e.g., family chats, social football groups).
+  4. PROJECT SCOPE: Focus exclusively on stakeholders related to "${project.projectName}".
 
-    // Define plain JSON schema for Gemini
+  INPUT DATA:
+  - Project Description: ${project.project_description}
+  - Data Vault JSON: ${JSON.stringify(relevantChats)}
+
+  EXTRACTION LOGIC:
+  - Identify Name & Role from Participant lists, Signatures, or Speaker tags.
+  - Determine 'Influence': Look for budget authority (CFO), technical veto power (CTO), or final decision rights (CEO).
+  - Determine 'Stance': Analyze sentiment. (e.g., Is the CFO "Blocking" a budget? Is the CEO "Supportive" of speed over security?)
+
+  OUTPUT: Return a JSON object with a 'stakeholders' array.
+`;
+
+    // Define plain JSON schema for Gemini (must match our Zod `extractionSchema`)
     const extractionJsonSchema = {
       type: "object",
       properties: {
@@ -261,8 +275,10 @@ export const mapStakeholders = async (req: any, res: any, next: any) => {
             properties: {
               name: { type: "string" },
               role: { type: "string" },
+              influence: { type: "string", enum: ["High", "Medium", "Low"] },
+              stance: { type: "string", enum: ["Supportive", "Neutral", "Skeptical", "Blocking"] },
             },
-            required: ["name", "role"],
+            required: ["name", "role", "influence", "stance"],
           },
         },
       },
@@ -288,6 +304,8 @@ export const mapStakeholders = async (req: any, res: any, next: any) => {
           data: {
             name: s.name,
             role: s.role,
+            influence: s.influence ?? null,
+            stance: s.stance ?? null,
             projectId: projectId,
           },
         })
@@ -298,38 +316,6 @@ export const mapStakeholders = async (req: any, res: any, next: any) => {
       console.error("Stakeholder Extraction Error:", error);
       return next(new apiError(500, "Failed to extract stakeholders", [error.message]));
     }
-};
-
-
-export const increamentProjectStatus = async (req: any, res: any, next: any) => {
-  try {
-    const { projectId } = req.params;
-    if (!projectId) return next(new apiError(400, "projectId is required"));
-
-    const existingProject = await prisma.project.findUnique({
-      where: { id: projectId },
-    });
-    if (!existingProject) return next(new apiError(404, "Project not found"));
-
-    const updatedProject = await prisma.project.update({
-      where: { id: projectId },
-      data: {
-        status: existingProject.status + 1,
-      } as any,
-    });
-
-    return Api.success(res, updatedProject, "Project status updated successfully");
-  } catch (error: any) {
-    console.error(error);
-    return next(
-      new apiError(
-        500,
-        "Failed to update project status",
-        [error?.message || String(error)],
-        error?.stack,
-      ),
-    );
-  }
 };
 
 /*

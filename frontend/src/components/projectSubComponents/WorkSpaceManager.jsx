@@ -1,29 +1,22 @@
-import React, { useState, useEffect } from 'react';
-import { useAuth } from '../providers/AuthProvider';
+import { useState, useEffect } from 'react';
 import EnginePanel from './EnginePanel';
 import StatusTimeline from './StatusTimeline';
+import { useProject } from '../providers/ProjectProvider';
+import { use } from 'react';
 
-export default function WorkspaceManager({ currentStage, projectData }) {
-  const { testUser } = useAuth();
-  const [relevantChats, setRelevantChats] = useState({});
+export default function WorkspaceManager( ) {
 
+  const [status = 0, setStatus] = useState(0);
+  const { project } = useProject() || {};
   useEffect(() => {
-    if (!testUser || !testUser.data_vault) {
-      setRelevantChats({});
-      return;
+    if (project && typeof project.status === 'number') {
+      setStatus(project.status);
     }
+  }, [project]);
 
-    const channels = ['gmail', 'whatsapp', 'slack', 'meetings'];
-    const dv = testUser.data_vault || {};
-    const collected = {};
 
-    channels.forEach((ch) => {
-      const list = Array.isArray(dv[ch]) ? dv[ch].filter((it) => it && it.is_relevant === true) : [];
-      if (list.length) collected[ch] = list;
-    });
 
-    setRelevantChats(collected);
-  }, [testUser]);
+
 
   return (
     // Cleaned height calculation and background consistency
@@ -31,7 +24,7 @@ export default function WorkspaceManager({ currentStage, projectData }) {
       
       {/* Containerized spacing for the timeline to prevent layout shift */}
       <div className="w-full px-6 pt-6 pb-3">
-        <StatusTimeline currentStage={currentStage} />
+        <StatusTimeline currentStage={status} />
       </div>
 
       {/* Flex container refinement: 
@@ -46,8 +39,8 @@ export default function WorkspaceManager({ currentStage, projectData }) {
         */}
         <div className="flex-1 h-full bg-white border border-slate-200/60 rounded-[2rem] shadow-sm overflow-hidden flex flex-col">
           <EnginePanel 
-            is_relevant_chats={relevantChats} 
-            projectId={projectData?.id}
+          
+            projectId={project?.id}
           />
         </div>
     
