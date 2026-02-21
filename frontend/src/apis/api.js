@@ -131,6 +131,8 @@ post /projects/:projectId/files - upload project files
 post /projects/:projectId/stakeholders - map stakeholders
 post /projects/:projectId/map-facts - map facts
 post /projects/:projectId/increament-status - increament project status
+post /projects/:projectId/find-contradictions - find contradictions
+post /projects/:projectId/resolve-contradiction - resolve contradiction
  */
 
 
@@ -271,6 +273,39 @@ export const mapFacts = async (projectId, userData) => {
     throw error;
   }
 };
+
+export const findContradictions = async (projectId) => {
+  try {
+   
+    const response = await api.post(`/projects/${projectId}/find-contradictions`);
+    const msg = _extractMessage(response) || "Contradictions found successfully";
+    toast.success(msg);
+    return response.data ?? response;
+  } catch (error) {
+    console.error('Error finding contradictions:', error);
+    const errMsg = error?.response ? (error.response.data?.message ?? error.response.message) : "Failed to find contradictions";
+    toast.error(errMsg);
+    throw error;
+  }
+};
+
+
+
+export const resolveContradiction = async (projectId, resolvedData) => {
+  try {
+    // resolvedData can be a single object or an array of resolution objects
+    const response = await api.post(`/projects/${projectId}/resolve-contradiction`, resolvedData);
+    const msg = _extractMessage(response) || "Contradiction(s) resolved successfully";
+    toast.success(msg);
+    return response.data ?? response;
+  } catch (error) {
+    console.error('Error resolving contradiction(s):', error);
+    const errMsg = error?.response ? (error.response.data?.message ?? error.response.message) : "Failed to resolve contradiction(s)";
+    toast.error(errMsg);
+    throw error;
+  }
+};
+
 
 
 

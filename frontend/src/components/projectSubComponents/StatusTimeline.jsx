@@ -5,7 +5,7 @@ export default function StatusTimeline({ status: propStatus }) {
   const { project } = useProject() || {};
   const status = typeof propStatus === 'number' ? propStatus : (project?.status ?? 0);
   const steps = [0, 1, 2, 3, 4, 5];
-  const labels = ['Init', 'Ingest', 'Synthesize', 'Review', 'Finalize', 'Done'];
+  const labels = ['selection', 'stackholders', 'facts', 'conflicts', 'Final summary', 'refine and export'];
 
   return (
     <div className="w-full px-2">

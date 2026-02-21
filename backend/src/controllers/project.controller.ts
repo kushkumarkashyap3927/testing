@@ -859,3 +859,239 @@ export const mapFacts = async (req: any, res: any, next: any) => {
     return next(new apiError(500, 'Neural Logic Error', [error?.message || String(error)]));
   }
 };
+
+
+// find conflicts 
+// algorithm for contradictions
+/*
+1. Receive projectId
+2. Fetch all facts for the project from DB
+3. compare facts and find groups of contradictions (e.g., same source but different content, or same claim but different sources)
+4. Store contradictions in DB and return them with options to chose by user above one fact in a given 
+*/
+
+
+// model Contradiction {
+//   id                  String   @id @default(auto()) @map("_id") @db.ObjectId
+//   contradiction_facts String[]      @default([])
+//   context             String
+//   projectId           String   @db.ObjectId
+
+//   project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+// }
+
+
+
+// 1. Zod Schema for AI Output Validation
+const contradictionOutputSchema = z.object({
+  contradictions: z.array(
+    z.object({
+      factIds: z.array(z.string()).describe("List of MongoDB Fact IDs that clash."),
+      context: z.string().describe("A professional summary of why these facts contradict each other."),
+    })
+  )
+});
+
+export const findContradictions = async (req: any, res: any, next: any) => {
+  try {
+    const { projectId } = req.params;
+
+    if (!projectId) return next(new apiError(400, "ProjectId is required"));
+
+    // 2. Fetch all project facts and stakeholders
+    const [facts, stakeholders] = await Promise.all([
+      prisma.fact.findMany({ where: { projectId } }),
+      prisma.stakeholder.findMany({ where: { projectId } })
+    ]);
+
+    if (facts.length < 2) {
+      return Api.success(res, [], "Insufficient facts to perform contradiction analysis.");
+    }
+
+    // 3. Prepare Grounded Prompt for Logic Audit
+    // We map stakeholders to their IDs so the AI can mention names in the context
+    const factList = facts.map(f => {
+      const owner = stakeholders.find(s => s.id === f.stackHolderId);
+      return `[ID: ${f.id}] Source: ${f.source} | Stakeholder: ${owner?.name || "Unknown"} | Content: ${typeof f.content === 'string' ? f.content : JSON.stringify(f.content)}`;
+    }).join("\n");
+
+    const prompt = `
+      SYSTEM ROLE: Logic Reconciliation & Conflict Auditor for Anvaya.Ai.
+      TASK: Analyze the provided Fact Set and identify direct or indirect contradictions.
+      
+      LOGIC RULES:
+      1. BUDGET CLASH: Identify if stakeholders mention different cost limits or figures.
+      2. TIMELINE DRIFT: Identify if dates for milestones or launches do not match.
+      3. SCOPE CREEP: Identify if a stakeholder suggests a requirement that another says is out-of-scope or blocked.
+      4. MANDATORY VS OPTIONAL: Identify if a compliance requirement is marked as 'required' by one and 'skippable' by another.
+
+      FACT SET:
+      ${factList}
+
+      OUTPUT INSTRUCTIONS:
+      - Return a JSON object with a 'contradictions' array.
+      - Each item must contain 'factIds' (the original MongoDB IDs) and a 'context' explaining the clash.
+      - ONLY report actual contradictions. If logic is consistent, return an empty array.
+    `;
+
+    // 4. Gemini Configuration
+    const contradictionJsonSchema = {
+      type: "object",
+      properties: {
+        contradictions: {
+          type: "array",
+          items: {
+            type: "object",
+            properties: {
+              factIds: { type: "array", items: { type: "string" } },
+              context: { type: "string" }
+            },
+            required: ["factIds", "context"]
+          }
+        }
+      },
+      required: ["contradictions"]
+    };
+
+    const result = await ai.models.generateContent({
+      model: "gemini-3-flash-preview",
+      contents: prompt,
+      config: {
+        responseMimeType: "application/json",
+        responseJsonSchema: contradictionJsonSchema,
+      },
+    } as any);
+
+    // 5. Safe Parsing
+    const rawText = (result.text ?? "").replace(/```json|```/gi, "").trim();
+    const parsedData = contradictionOutputSchema.parse(JSON.parse(rawText));
+
+    // 6. Persistence: Clear old contradictions and save new ones
+    // We use a transaction to ensure we don't have duplicate or stale conflicts
+    const savedContradictions = await prisma.$transaction(async (tx) => {
+      await tx.contradiction.deleteMany({ where: { projectId } });
+
+      const created = await Promise.all(
+        parsedData.contradictions.map(c => 
+          tx.contradiction.create({
+            data: {
+              contradiction_facts: c.factIds,
+              context: c.context,
+              projectId: projectId
+            }
+          })
+        )
+      );
+      return created;
+    });
+
+    return Api.success(res, savedContradictions, "Logic Audit Complete: Contradictions identified.");
+
+  } catch (error: any) {
+    console.error("Conflict Detection Error:", error);
+    return next(new apiError(500, "Logic Engine Failure at Step 3", [error.message]));
+  }
+};
+
+/*
+model Resolution {
+  id               String @id @default(auto()) @map("_id") @db.ObjectId
+  final_decision   String
+  winnerFactId     String @db.ObjectId
+  custom_input     String
+  reasoning        String
+  contradiction_id String @db.ObjectId
+  projectId        String @db.ObjectId
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
+*/
+
+
+// algorithm for resolution
+/*
+1. Receive projectId with (either winnerFactId or custom_input) and contradictionId from frontend.
+2. check if both field (winnerFactId and custom_input) are not provided or both are provided then return error
+3. check reasoning is provided or not if not return error
+4. Fetch the contradiction from DB using contradictionId to get the context and the conflicting facts.
+5. If winnerFactId is provided then fetch the winning fact and use its content in prompt otherwise use custom_input as winning argument
+
+*/
+
+
+
+
+
+export const ResolveContradiction = async (req: any, res: any, next: any) => {
+  try {
+    const { projectId } = req.params;
+    const payload = req.body;
+
+    if (!projectId) return next(new apiError(400, "ProjectId is required"));
+
+    // Normalize to an array to support batch and single-item calls
+    const items = Array.isArray(payload) ? payload : [payload];
+
+    if (items.length === 0) return next(new apiError(400, "No resolution items provided"));
+
+    // Validate all items first
+    for (const item of items) {
+      const { contradictionId, winnerFactId, custom_input, reasoning } = item;
+      if (!contradictionId) return next(new apiError(400, "contradictionId is required for each item"));
+      // XOR requirement
+      if ((!winnerFactId && !custom_input) || (winnerFactId && custom_input)) {
+        return next(new apiError(400, "Provide either winnerFactId or custom_input for each item, not both or neither."));
+      }
+      if (!reasoning) return next(new apiError(400, "Resolution reasoning is mandatory for each item."));
+    }
+
+    // Process all items in a transaction
+    const results = await prisma.$transaction(async (tx) => {
+      const createdResolutions: any[] = [];
+
+      for (const item of items) {
+        const { contradictionId, winnerFactId, custom_input, reasoning } = item;
+
+        const contradiction = await tx.contradiction.findUnique({ where: { id: contradictionId } });
+        if (!contradiction) throw new Error(`Contradiction ${contradictionId} not found`);
+
+        let finalDecisionText = "";
+        if (winnerFactId) {
+          const winningFact = await tx.fact.findUnique({ where: { id: winnerFactId } });
+          if (!winningFact) throw new Error(`Winning fact ${winnerFactId} not found`);
+          finalDecisionText = typeof winningFact.content === 'object' ? (winningFact.content as any).statement ?? JSON.stringify(winningFact.content) : String(winningFact.content);
+        } else {
+          finalDecisionText = custom_input || '';
+        }
+
+        const resolution = await tx.resolution.create({
+          data: {
+            final_decision: finalDecisionText,
+            winnerFactId: winnerFactId || null,
+            custom_input: custom_input || "",
+            reasoning,
+            contradiction_id: contradictionId,
+            projectId,
+          },
+        });
+
+        // Mark all involved facts as superseded (resolved = false)
+        await tx.fact.updateMany({ where: { id: { in: contradiction.contradiction_facts } }, data: { resolved: false } });
+
+        if (winnerFactId) {
+          await tx.fact.update({ where: { id: winnerFactId }, data: { resolved: true } });
+        }
+
+        createdResolutions.push(resolution);
+      }
+
+      return createdResolutions;
+    });
+
+    return Api.success(res, results, "Logic Reconciled: Resolutions recorded.");
+  } catch (error: any) {
+    console.error("Resolution Error:", error);
+    return next(new apiError(500, "Failed to resolve contradictions", [error?.message || String(error)]));
+  }
+};
+   

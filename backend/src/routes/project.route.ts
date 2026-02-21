@@ -6,7 +6,9 @@ import {
      uploadProjectFiles,
      mapStakeholders,
      increamentProjectStatus,
-     mapFacts
+     mapFacts,
+     findContradictions,
+     ResolveContradiction
      } from "../controllers/project.controller";
 import upload from "../utils/multer";
 
@@ -42,6 +44,12 @@ projectRouter.post("/projects/:projectId/increament-status",increamentProjectSta
 // Map facts
 projectRouter.post("/projects/:projectId/map-facts", mapFacts);
 
+// Find contradictions
+projectRouter.post("/projects/:projectId/find-contradictions", findContradictions);
+
+
+// Resolve contradictions
+projectRouter.post("/projects/:projectId/resolve-contradiction", ResolveContradiction);
 
 
 export default projectRouter;
@@ -59,6 +67,8 @@ post /projects/:projectId/files - upload project files
 post /projects/:projectId/stakeholders - map stakeholders
 post /projects/:projectId/map-facts - map facts
 post /projects/:projectId/increament-status - increament project status
+post /projects/:projectId/find-contradictions - find contradictions
+post /projects/:projectId/resolve-contradiction - resolve contradiction
  */
 
 
