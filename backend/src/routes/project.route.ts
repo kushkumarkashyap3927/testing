@@ -7,6 +7,7 @@ import {
   mapStakeholders,
   increamentProjectStatus,
   mapFacts,
+  deleteFact,
   findContradictions,
   ResolveContradiction,
   generateBRD,
@@ -27,6 +28,7 @@ projectRouter.post("/projects/:projectId/files", upload.array("files", 10), uplo
 projectRouter.post("/projects/:projectId/stakeholders", mapStakeholders);
 projectRouter.post("/projects/:projectId/increament-status", increamentProjectStatus);
 projectRouter.post("/projects/:projectId/map-facts", mapFacts);
+projectRouter.delete("/projects/:projectId/facts/:factId", deleteFact);
 projectRouter.post("/projects/:projectId/find-contradictions", findContradictions);
 projectRouter.post("/projects/:projectId/resolve-contradiction", ResolveContradiction);
 projectRouter.post("/projects/:projectId/generate-brd", generateBRD);

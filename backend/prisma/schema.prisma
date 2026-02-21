@@ -84,13 +84,14 @@ model Contradiction {
 }
 
 model Resolution {
-  id               String @id @default(auto()) @map("_id") @db.ObjectId
+  id               String  @id @default(auto()) @map("_id") @db.ObjectId
   final_decision   String
-  winnerFactId     String @db.ObjectId
+  winnerFactId     String? @db.ObjectId
   custom_input     String
   reasoning        String
-  contradiction_id String @db.ObjectId
-  projectId        String @db.ObjectId
+  contradiction_id String  @db.ObjectId
+  projectId        String  @db.ObjectId
 
   project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 }
+

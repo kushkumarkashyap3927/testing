@@ -892,6 +892,23 @@ const contradictionOutputSchema = z.object({
   )
 });
 
+export const deleteFact = async (req: any, res: any, next: any) => {
+  try {
+    const { projectId, factId } = req.params;
+    if (!projectId || !factId) return next(new apiError(400, "projectId and factId are required"));
+
+    const fact = await prisma.fact.findUnique({ where: { id: factId } });
+    if (!fact) return next(new apiError(404, "Fact not found"));
+    if (fact.projectId !== projectId) return next(new apiError(403, "Fact does not belong to this project"));
+
+    await prisma.fact.delete({ where: { id: factId } });
+    return Api.success(res, { factId }, "Fact deleted successfully");
+  } catch (error: any) {
+    console.error("Delete Fact Error:", error);
+    return next(new apiError(500, "Failed to delete fact", [error?.message || String(error)]));
+  }
+};
+
 export const findContradictions = async (req: any, res: any, next: any) => {
   try {
     const { projectId } = req.params;

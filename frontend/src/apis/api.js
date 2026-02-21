@@ -261,7 +261,6 @@ export const increamentProjectStatus = async (projectId) => {
 
 export const mapFacts = async (projectId, userData) => {
   try {
-    // Send full `userData` in the request body (backend expects `userData`)
     const response = await api.post(`/projects/${projectId}/map-facts`, { userData });
     const msg = _extractMessage(response) || "Facts mapped successfully";
     toast.success(msg);
@@ -273,6 +272,21 @@ export const mapFacts = async (projectId, userData) => {
     throw error;
   }
 };
+
+export const deleteFact = async (projectId, factId) => {
+  try {
+    const response = await api.delete(`/projects/${projectId}/facts/${factId}`);
+    const msg = _extractMessage(response) || "Fact deleted";
+    toast.success(msg);
+    return response.data ?? response;
+  } catch (error) {
+    console.error('Error deleting fact:', error);
+    const errMsg = error?.response ? (error.response.data?.message ?? error.response.message) : "Failed to delete fact";
+    toast.error(errMsg);
+    throw error;
+  }
+};
+
 
 export const findContradictions = async (projectId) => {
   try {
