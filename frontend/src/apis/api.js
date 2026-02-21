@@ -306,8 +306,46 @@ export const resolveContradiction = async (projectId, resolvedData) => {
   }
 };
 
+export const generateBRD = async (projectId) => {
+  try {
+    const response = await api.post(`/projects/${projectId}/generate-brd`);
+    const msg = _extractMessage(response) || "BRD generated successfully";
+    toast.success(msg);
+    return response.data ?? response;
+  } catch (error) {
+    console.error('Error generating BRD:', error);
+    const errMsg = error?.response ? (error.response.data?.message ?? error.response.message) : "Failed to generate BRD";
+    toast.error(errMsg);
+    throw error;
+  }
+};
 
+export const refineBRD = async (projectId, userInput) => {
+  try {
+    const response = await api.post(`/projects/${projectId}/refine-brd`, { userInput });
+    const msg = _extractMessage(response) || "BRD refined successfully";
+    toast.success(msg);
+    return response.data ?? response;
+  } catch (error) {
+    console.error('Error refining BRD:', error);
+    const errMsg = error?.response ? (error.response.data?.message ?? error.response.message) : "Failed to refine BRD";
+    toast.error(errMsg);
+    throw error;
+  }
+};
 
-
+export const saveBRD = async (projectId, brdMdx) => {
+  try {
+    const response = await api.post(`/projects/${projectId}/save-brd`, { brdMdx });
+    const msg = _extractMessage(response) || "BRD saved successfully";
+    toast.success(msg);
+    return response.data ?? response;
+  } catch (error) {
+    console.error('Error saving BRD:', error);
+    const errMsg = error?.response ? (error.response.data?.message ?? error.response.message) : "Failed to save BRD";
+    toast.error(errMsg);
+    throw error;
+  }
+};
 
 

@@ -1022,6 +1022,105 @@ model Resolution {
 
 
 
+export const generateBRD = async (req: any, res: any, next: any) => {
+  try {
+    const { projectId } = req.params;
+    if (!projectId) return next(new apiError(400, "ProjectId is required"));
+
+    // Fetch all project data for grounding
+    const [project, stakeholders, facts, resolutions] = await Promise.all([
+      prisma.project.findUnique({ where: { id: projectId } }),
+      prisma.stakeholder.findMany({ where: { projectId } }),
+      prisma.fact.findMany({ where: { projectId } }),
+      prisma.resolution.findMany({ where: { projectId } }),
+    ]);
+
+    if (!project) return next(new apiError(404, "Project not found"));
+
+    const resolvedFacts = facts.filter(f => f.resolved);
+    const supersededFacts = facts.filter(f => !f.resolved);
+
+    const stakeholderList = stakeholders.map(s =>
+      `- ${s.name} (${s.role}) | Influence: ${s.influence} | Stance: ${s.stance}`
+    ).join('\n');
+
+    const factList = resolvedFacts.map((f, i) => {
+      const content = typeof f.content === 'string' ? f.content : JSON.stringify(f.content);
+      const owner = stakeholders.find(s => s.id === f.stackHolderId);
+      return `[FACT-${String(i+1).padStart(3,'0')}] ${content}\n  ↳ Source: ${f.source} | Owner: ${owner?.name || 'Unknown'} | Tone: ${f.tone}`;
+    }).join('\n\n');
+
+    const resolutionList = resolutions.map((r, i) =>
+      `[RES-${String(i+1).padStart(3,'0')}] Final Decision: ${r.final_decision}\n  ↳ Reasoning: ${r.reasoning}`
+    ).join('\n\n');
+
+    const prompt = `
+      SYSTEM ROLE: Senior Business Analyst & Technical Writer at Anvaya.Ai.
+      TASK: Generate a comprehensive, audit-ready Business Requirements Document (BRD) in Markdown format.
+
+      STRICT RULES:
+      1. Every requirement clause MUST cite the source fact ID (e.g., "[Ref: FACT-001]").
+      2. Include ALL verified stakeholders in the Authority Matrix.
+      3. Include a Data Lineage section mapping each BRD clause to original communication sources.
+      4. Format output as clean Markdown with proper headers (# for H1, ## for H2, ### for H3).
+      5. Be professional, forensic, and precise. No hallucinations.
+
+      PROJECT CONTEXT:
+      - Project Name: ${project.projectName}
+      - Description: ${project.project_description}
+      - Files Analyzed: ${project.files.map((f: any) => f.name).join(', ') || 'None'}
+
+      STAKEHOLDER AUTHORITY MATRIX:
+      ${stakeholderList || 'No stakeholders identified'}
+
+      VERIFIED ATOMIC FACTS (GROUNDING SOURCE):
+      ${factList || 'No facts available'}
+
+      CONFLICT RESOLUTIONS APPLIED:
+      ${resolutionList || 'No resolutions required — all facts were consistent'}
+
+      SUPERSEDED FACTS (Excluded from BRD):
+      ${supersededFacts.map(f => typeof f.content === 'string' ? f.content : JSON.stringify(f.content)).join('; ') || 'None'}
+
+      OUTPUT: A complete BRD in Markdown, including sections:
+      # Business Requirements Document: ${project.projectName}
+      ## Executive Summary
+      ## Project Scope
+      ## Stakeholder Authority Matrix
+      ## Functional Requirements (cite FACT IDs)
+      ## Non-Functional Requirements
+      ## Compliance & Risk Constraints
+      ## Resolved Conflicts Log
+      ## Data Lineage & Provenance
+      ## Approval & Sign-Off
+    `;
+
+    const brdResult = await ai.models.generateContent({
+      model: "gemini-3-flash-preview",
+      contents: prompt,
+      config: {
+        responseMimeType: "text/plain",
+      },
+    } as any);
+
+    const brdMarkdown = (brdResult.text ?? "").trim();
+
+    // Save BRD and increment status to 5
+    const updatedProject = await prisma.project.update({
+      where: { id: projectId },
+      data: {
+        brdMdx: brdMarkdown,
+        status: 5,
+      } as any,
+    });
+
+    return Api.success(res, updatedProject, "BRD synthesized and saved successfully");
+  } catch (error: any) {
+    console.error("BRD Generation Error:", error);
+    return next(new apiError(500, "Failed to generate BRD", [error?.message || String(error)]));
+  }
+};
+
 export const ResolveContradiction = async (req: any, res: any, next: any) => {
   try {
     const { projectId } = req.params;
@@ -1094,4 +1193,84 @@ export const ResolveContradiction = async (req: any, res: any, next: any) => {
     return next(new apiError(500, "Failed to resolve contradictions", [error?.message || String(error)]));
   }
 };
+export const refineBRD = async (req: any, res: any, next: any) => {
+  try {
+    const { projectId } = req.params;
+    const { userInput } = req.body;
+
+    if (!projectId) return next(new apiError(400, "ProjectId is required"));
+    if (!userInput || !userInput.trim()) return next(new apiError(400, "userInput is required"));
+
+    const [project, stakeholders, facts] = await Promise.all([
+      prisma.project.findUnique({ where: { id: projectId } }),
+      prisma.stakeholder.findMany({ where: { projectId } }),
+      prisma.fact.findMany({ where: { projectId, resolved: true } }),
+    ]);
+
+    if (!project) return next(new apiError(404, "Project not found"));
+
+    const currentBRD = project.brdMdx || "(No BRD generated yet)";
+
+    const factGrounding = facts.map((f, i) => {
+      const content = typeof f.content === "string" ? f.content : JSON.stringify(f.content);
+      const owner = stakeholders.find(s => s.id === f.stackHolderId);
+      return `[FACT-${String(i+1).padStart(3,"0")}] ${content}\n  ↳ Source: ${f.source} | Owner: ${owner?.name || "Unknown"}`;
+    }).join("\n\n");
+
+    const prompt = `
+      SYSTEM ROLE: You are the Anvaya.Ai BRD Refinement Engine.
+      TASK: Refine the existing BRD based on the user's instruction. You MUST retain all data lineage citations (e.g., [Ref: FACT-001]) in your output.
+
+      USER INSTRUCTION: "${userInput}"
+
+      CURRENT BRD:
+      ${currentBRD}
+
+      VERIFIED FACT GROUNDING (reference these for citations):
+      ${factGrounding}
+
+      RULES:
+      1. Apply the user's instruction precisely.
+      2. Never remove existing FACT citations — only add more if needed.
+      3. Keep the document in clean Markdown format.
+      4. Do not hallucinate new requirements not supported by the fact set.
+
+      OUTPUT: The complete refined BRD in Markdown format only.
+    `;
+
+    const result = await ai.models.generateContent({
+      model: "gemini-3-flash-preview",
+      contents: prompt,
+      config: { responseMimeType: "text/plain" },
+    } as any);
+
+    const refinedBRD = (result.text ?? "").trim();
+
+    return Api.success(res, { refinedBRD }, "BRD refined successfully");
+  } catch (error: any) {
+    console.error("BRD Refinement Error:", error);
+    return next(new apiError(500, "Failed to refine BRD", [error?.message || String(error)]));
+  }
+};
+
+export const saveBRD = async (req: any, res: any, next: any) => {
+  try {
+    const { projectId } = req.params;
+    const { brdMdx } = req.body;
+
+    if (!projectId) return next(new apiError(400, "ProjectId is required"));
+    if (!brdMdx) return next(new apiError(400, "brdMdx content is required"));
+
+    const updatedProject = await prisma.project.update({
+      where: { id: projectId },
+      data: { brdMdx } as any,
+    });
+
+    return Api.success(res, updatedProject, "BRD saved successfully");
+  } catch (error: any) {
+    console.error("Save BRD Error:", error);
+    return next(new apiError(500, "Failed to save BRD", [error?.message || String(error)]));
+  }
+};
+
    

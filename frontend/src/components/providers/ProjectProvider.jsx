@@ -8,6 +8,11 @@ export function ProjectProvider({ children }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  // Pipeline data state
+  const [stakeholders, setStakeholders] = useState([]);
+  const [facts, setFacts] = useState([]);
+  const [contradictions, setContradictions] = useState([]);
+
   const fetchProject = useCallback(async (id) => {
     if (!id) return null;
     setLoading(true);
@@ -31,6 +36,13 @@ export function ProjectProvider({ children }) {
     fetchProject,
     loading,
     error,
+    // pipeline data
+    stakeholders,
+    setStakeholders,
+    facts,
+    setFacts,
+    contradictions,
+    setContradictions,
   };
 
   return <ProjectContext.Provider value={value}>{children}</ProjectContext.Provider>;
